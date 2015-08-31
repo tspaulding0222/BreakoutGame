@@ -8,8 +8,8 @@ public class Ball {
     RectF rect;
     float xVelocity;
     float yVelocity;
-    float ballWidth;
-    float ballHeight;
+    float ballWidth = 10;
+    float ballHeight = 10;
 
     public Ball(int screenX, int screenY){
 
@@ -45,7 +45,7 @@ public class Ball {
         Random generator = new Random();
         int answer = generator.nextInt(2);
 
-        if(answer ==0){
+        if(answer == 0){
             reverseXVelocity();
         }
     }
@@ -61,9 +61,9 @@ public class Ball {
     }
 
     public void reset(int x, int y){
-        rect.left = x /2;
+        rect.left = x / 2;
         rect.top = y - 20;
-        rect.right = x /2 + ballWidth;
+        rect.right = x / 2 + ballWidth;
         rect.bottom = y - 20 - ballHeight;
     }
 }

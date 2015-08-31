@@ -57,6 +57,9 @@ public class BreakoutGame extends Activity {
         //the players paddle
         Paddle paddle;
 
+        //the ball
+        Ball ball;
+
         //a boolean to track if the game is running
         volatile boolean playing;
 
@@ -94,6 +97,16 @@ public class BreakoutGame extends Activity {
 
             //create the users paddle
             paddle = new Paddle(screenX, screenY);
+
+            //create the ball
+            ball = new Ball(screenX, screenY);
+
+            createBricksAndRestart();
+        }
+
+        public void createBricksAndRestart(){
+            //put the ball back to start
+            ball.reset(screenX, screenY);
         }
 
         @Override
@@ -120,6 +133,9 @@ public class BreakoutGame extends Activity {
         public void update(){
             //move the users paddle if required
             paddle.update(fps);
+
+            //update the ball location
+            ball.update(fps);
         }
 
         //draw the newly updated scene
@@ -139,6 +155,7 @@ public class BreakoutGame extends Activity {
                 canvas.drawRect(paddle.getRect(), paint);
 
                 //draw the ball
+                canvas.drawRect(ball.getRect(), paint);
 
                 //draw the bricks
 
