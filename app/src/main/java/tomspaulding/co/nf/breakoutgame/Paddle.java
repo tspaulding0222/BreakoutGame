@@ -1,3 +1,5 @@
+package tomspaulding.co.nf.breakoutgame;
+
 import android.graphics.RectF;
 
 public class Paddle {

@@ -54,6 +54,9 @@ public class BreakoutGame extends Activity {
         //Surface holder that we will draw to
         SurfaceHolder ourHolder;
 
+        //the players paddle
+        Paddle paddle;
+
         //a boolean to track if the game is running
         volatile boolean playing;
 
@@ -88,6 +91,9 @@ public class BreakoutGame extends Activity {
             //intialize the screen size vars
             screenX = size.x;
             screenY = size.y;
+
+            //create the users paddle
+            paddle = new Paddle(screenX, screenY);
         }
 
         @Override
@@ -112,7 +118,8 @@ public class BreakoutGame extends Activity {
 
         //Everything that needs updated per frame
         public void update(){
-
+            //move the users paddle if required
+            paddle.update(fps);
         }
 
         //draw the newly updated scene
@@ -129,6 +136,7 @@ public class BreakoutGame extends Activity {
                 paint.setColor(Color.argb(255, 255, 255, 255));
 
                 //draw the paddle
+                canvas.drawRect(paddle.getRect(), paint);
 
                 //draw the ball
 
@@ -165,11 +173,20 @@ public class BreakoutGame extends Activity {
             switch (motionEvent.getAction() & MotionEvent.ACTION_MASK){
                 //if the player touches the screen
                 case MotionEvent.ACTION_DOWN:
+                    paused = false;
+
+                    if(motionEvent.getX() > screenX / 2){
+                        paddle.setMovementState(paddle.RIGHT);
+                    }
+                    else{
+                        paddle.setMovementState(paddle.LEFT);
+                    }
 
                     break;
 
                 //player has lifted their finger up from the screen
                 case MotionEvent.ACTION_UP:
+                    paddle.setMovementState(paddle.STOPPED);
 
                     break;
             }
