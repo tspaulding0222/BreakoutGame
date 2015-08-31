@@ -5,8 +5,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -67,12 +69,25 @@ public class BreakoutGame extends Activity {
         //used to calc the fps
         private long timeThisFrame;
 
+        //the size of the screen
+        int screenX;
+        int screenY;
+
         public BreakoutView(Context context){
             super(context);
 
             //Intialize ourHolder and paint objects
             ourHolder = getHolder();
             paint = new Paint();
+
+            //Get a display object
+            Display display = getWindowManager().getDefaultDisplay();
+            //load the res into a point object
+            Point size = new Point();
+            display.getSize(size);
+            //intialize the screen size vars
+            screenX = size.x;
+            screenY = size.y;
         }
 
         @Override
