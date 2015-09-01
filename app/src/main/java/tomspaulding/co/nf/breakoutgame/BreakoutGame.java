@@ -218,7 +218,6 @@ public class BreakoutGame extends Activity {
 
             //check for ball colliding with paddle
             if(RectF.intersects(paddle.getRect(), ball.getRect())){
-                ball.setRandomXVelocity();
                 ball.reverseYVelocity();
                 ball.clearObstacleY(paddle.getRect().top - 2);
                 soundPool.play(beep1ID, 1, 1, 0, 0, 1);
@@ -226,8 +225,10 @@ public class BreakoutGame extends Activity {
 
             //Reset the ball when it hits bottom of screen and deduct a life
             if(ball.getRect().bottom > screenY){
+                paused = true;
+                ball.reset(screenX, screenY);
                 ball.reverseYVelocity();
-                ball.clearObstacleY(screenY - 2);
+                paddle.centerPaddle(screenX);
 
                 //lose a life
                 lives--;
@@ -235,7 +236,6 @@ public class BreakoutGame extends Activity {
 
                 if(lives == 0){
                     paused = true;
-                    createBricksAndRestart();
                 }
             }
 
@@ -263,7 +263,6 @@ public class BreakoutGame extends Activity {
             //pause if cleared screen
             if(score == numBricks * 10){
                 paused = true;
-                createBricksAndRestart();
             }
 
             //update the ball location
@@ -287,7 +286,7 @@ public class BreakoutGame extends Activity {
                 canvas.drawRect(paddle.getRect(), paint);
 
                 //draw the ball
-                canvas.drawRect(ball.getRect(), paint);
+                canvas.drawCircle(ball.getRect().centerX(), ball.getRect().centerY(), ball.getRect().width(), paint);
 
                 //change the color of the brush
                 paint.setColor(Color.argb(255, 249, 129, 0));
@@ -350,7 +349,16 @@ public class BreakoutGame extends Activity {
                     paused = false;
 
                     if(motionEvent.getX() > screenX / 2){
-                        paddle.setMovementState(paddle.RIGHT);
+                        //If the game is over then restart it, if game is not over then move the paddle
+                        if(score == numBricks * 10 || lives <=0){
+                            //reset the game
+                            createBricksAndRestart();
+                            paused = true;
+                        }
+                        else{
+                            //move the paddle
+                            paddle.setMovementState(paddle.RIGHT);
+                        }
                     }
                     else{
                         paddle.setMovementState(paddle.LEFT);

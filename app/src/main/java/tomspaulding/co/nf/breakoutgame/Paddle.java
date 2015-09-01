@@ -67,4 +67,10 @@ public class Paddle {
         rect.left = x;
         rect.right = x + length;
     }
+
+    public void centerPaddle(int screenX){
+        x = screenX / 2;
+        rect.left = x;
+        rect.right = x + length;
+    }
 }
