@@ -192,7 +192,7 @@ public class BreakoutGame extends Activity {
 
         public void buildBrickWall(int brickWidth, int brickHeight){
             //if max level reached then end the game
-            if(level >= maxLevel){
+            if(level >= maxLevel && lives != 0){
                 winner = true;
                 level = 1;
             }
@@ -272,6 +272,10 @@ public class BreakoutGame extends Activity {
             if(RectF.intersects(paddle.getRect(), ball.getRect())){
                 ball.reverseYVelocity();
                 ball.clearObstacleY(paddle.getRect().top - 2);
+
+                //determine the x direction
+                ball.paddleBounch(paddle.getRect(), ball.getRect());
+
                 soundPool.play(beep1ID, 1, 1, 0, 0, 1);
             }
 
@@ -279,7 +283,6 @@ public class BreakoutGame extends Activity {
             if(ball.getRect().bottom > screenY){
                 paused = true;
                 ball.reset(screenX, screenY);
-                ball.reverseYVelocity();
                 paddle.centerPaddle(screenX);
 
                 //lose a life

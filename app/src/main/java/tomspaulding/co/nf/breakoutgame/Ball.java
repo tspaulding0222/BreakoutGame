@@ -1,9 +1,6 @@
 package tomspaulding.co.nf.breakoutgame;
 
-import android.graphics.Rect;
 import android.graphics.RectF;
-
-import java.util.Random;
 
 public class Ball {
     RectF rect;
@@ -12,10 +9,14 @@ public class Ball {
     float ballWidth = 10;
     float ballHeight = 10;
 
+    public final int FAST_X_VELOCITY = 800;
+    public final int MEDIUM_X_VELOCITY = 500;
+    public final int SLOW_X_VELOCITY = 200;
+
     public Ball(int screenX, int screenY){
 
         //start the ball travelling straight up at 100 pixels per second
-        xVelocity = 200;
+        xVelocity = -200;
         yVelocity = -400;
 
         //place the ball in the center of the screen at the bottom
@@ -42,16 +43,63 @@ public class Ball {
         xVelocity = -xVelocity;
     }
 
-    public void paddleBounch(Rect paddleRect, Rect ballRect){
+    public void paddleBounch(RectF paddleRect, RectF ballRect){
+        //Get paddle x positions
+        float paddleLeft = paddleRect.left;
+        float paddleRight = paddleRect.right;
 
-    }
+        //Get the ball x positions
+        float ballLeft = ballRect.left;
+        float ballRight = ballRect.right;
 
-    public void setRandomXVelocity(){
-        Random generator = new Random();
-        int answer = generator.nextInt(2);
+        float leftDifference = ballLeft - paddleLeft;
+        float rightDifference = paddleRight - ballRight;
 
-        if(answer == 0){
-            reverseXVelocity();
+        float paddleWidth = paddleRect.width();
+        float ballWidth = ballRect.width();
+
+        //if ball touched the right side of paddle
+        if(rightDifference < leftDifference){
+            //Get hitzone size
+            float rightHitZone = (paddleWidth / 2) / 3;
+
+            //Depending on where the ball struck the paddle, set the velocity
+            if(rightDifference < rightHitZone/2){
+                xVelocity = FAST_X_VELOCITY;
+                System.out.println("Speedo Fast V Right");
+            }
+            else if(rightDifference < rightHitZone){
+                xVelocity = MEDIUM_X_VELOCITY;
+                System.out.println("Speedo Med V Right");
+
+            }
+            else{
+                xVelocity = SLOW_X_VELOCITY;
+                System.out.println("Speedo Slow V Right");
+
+            }
+        }
+        //if ball touched left side of paddle
+        else if (leftDifference < rightDifference){
+            //Get hitzone size
+            float rightHitZone = (paddleWidth / 2) / 3;
+
+            //Depending on where the ball struck the paddle, set the velocity
+            if(leftDifference < rightHitZone / 2){
+                xVelocity = -FAST_X_VELOCITY;
+                System.out.println("Speedo Fast V Left");
+
+            }
+            else if(leftDifference < rightHitZone){
+                xVelocity = -MEDIUM_X_VELOCITY;
+                System.out.println("Speedo Med V Left");
+
+            }
+            else{
+                xVelocity = -SLOW_X_VELOCITY;
+                System.out.println("Speedo Slow V Left");
+
+            }
         }
     }
 
@@ -70,5 +118,12 @@ public class Ball {
         rect.top = y - 20;
         rect.right = x / 2 + ballWidth;
         rect.bottom = y - 20 - ballHeight;
+
+        resetBallVelocity();
+    }
+
+    public void resetBallVelocity(){
+        xVelocity = -200;
+        yVelocity = -400;
     }
 }

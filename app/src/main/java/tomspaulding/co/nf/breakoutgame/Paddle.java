@@ -30,7 +30,7 @@ public class Paddle {
 
     public Paddle(int screenX, int screenY){
         //130 pixels wide and 20 pixels high
-        length = 130;
+        length = 200;
         height = 20;
 
         //start the paddle in roughly the middle of the screen
