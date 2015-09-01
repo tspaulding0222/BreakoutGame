@@ -85,11 +85,23 @@ public class BreakoutGame extends Activity {
         //lives
         int lives = 3;
 
+        //Current level the player is at
+        int level = 1;
+
+        //The max level you want to be played
+        int maxLevel = 1;
+
+        //tracks if the current level has ended
+        boolean levelEnd = false;
+
         //a boolean to track if the game is running
         volatile boolean playing;
 
         //a boolean to determine if the game is paused or not
         boolean paused = true;
+
+        //boolean to determine if the user has beat the game
+        boolean winner = false;
 
         Canvas canvas;
         Paint paint;
@@ -160,6 +172,10 @@ public class BreakoutGame extends Activity {
             //put the ball back to start
             ball.reset(screenX, screenY);
 
+            //undo the levelEnd
+            levelEnd = false;
+
+            //Default Brick Size
             int brickWidth = screenX /8;
             int brickHeight = screenY /10;
 
@@ -167,16 +183,52 @@ public class BreakoutGame extends Activity {
             numBricks = 0;
 
             //build a wall of bricks
-            for(int column = 0; column < 8; column++){
-                for(int row = 0; row < 3; row++){
-                    bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
-                    numBricks++;
-                }
-            }
+            buildBrickWall(brickWidth, brickHeight);
 
             //reset scores and lives
             score = 0;
             lives = 3;
+        }
+
+        public void buildBrickWall(int brickWidth, int brickHeight){
+            //if max level reached then end the game
+            if(level >= maxLevel){
+                winner = true;
+                level = 1;
+            }
+
+            //Various brick formations for the levels
+            if(level == 1){
+                //8 columns, 3 rows
+                for(int column = 0; column < 1; column++){
+                    for(int row = 0; row < 1; row++){
+                        bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
+                        numBricks++;
+                    }
+                }
+            }
+            else if(level == 2){
+                //8 columns, 4 rows
+                for(int column = 0; column < 1; column++){
+                    for(int row = 0; row < 1; row++){
+                        bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
+                        numBricks++;
+                    }
+                }
+            }
+            else if(level == 3){
+                //Make the bricks half the size
+                brickWidth = brickWidth / 2;
+                brickHeight = brickHeight / 2;
+
+                //16 columns, 4 rows
+                for(int column = 0; column < 16; column++){
+                    for(int row = 0; row < 4; row++){
+                        bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
+                        numBricks++;
+                    }
+                }
+            }
         }
 
         @Override
@@ -236,6 +288,9 @@ public class BreakoutGame extends Activity {
 
                 if(lives == 0){
                     paused = true;
+                    if(level >= 2){
+                        level--;
+                    }
                 }
             }
 
@@ -262,6 +317,8 @@ public class BreakoutGame extends Activity {
 
             //pause if cleared screen
             if(score == numBricks * 10){
+                level++;
+
                 paused = true;
             }
 
@@ -305,16 +362,14 @@ public class BreakoutGame extends Activity {
                 paint.setTextSize(40);
                 canvas.drawText("Score: " + score + " Lives: " + lives, 10, 50, paint);
 
-                //has the player cleared the screen?
-                if(score == numBricks * 10){
-                    paint.setTextSize(90);
-                    canvas.drawText("YOU HAVE WON", 10, screenY/2, paint);
-                }
+                //draw the current level
+                String levelString = "Level: " + level;
+                canvas.drawText(levelString, screenX - paint.measureText(levelString, 0, levelString.length()), 50, paint);
 
-                //has player lost?
-                if(lives <= 0){
-                    paint.setTextSize(90);
-                    canvas.drawText("YOU HAVE LOST", 10, screenY/2, paint);
+                //has the player cleared the screen or lost?
+                if(score == numBricks * 10 || lives <= 0){
+                    //run the level over logic if the game is not already paused
+                    levelEnded();
                 }
 
                 //draw everything to the screen
@@ -348,17 +403,16 @@ public class BreakoutGame extends Activity {
                 case MotionEvent.ACTION_DOWN:
                     paused = false;
 
+                    //if game is over then reset
+                    if(levelEnd){
+                        //Run the logic for the level being over
+                        createBricksAndRestart();
+                    }
+
+                    //Paddle movement for press of left and right on screen
                     if(motionEvent.getX() > screenX / 2){
-                        //If the game is over then restart it, if game is not over then move the paddle
-                        if(score == numBricks * 10 || lives <=0){
-                            //reset the game
-                            createBricksAndRestart();
-                            paused = true;
-                        }
-                        else{
-                            //move the paddle
-                            paddle.setMovementState(paddle.RIGHT);
-                        }
+                        //move the paddle
+                        paddle.setMovementState(paddle.RIGHT);
                     }
                     else{
                         paddle.setMovementState(paddle.LEFT);
@@ -374,6 +428,34 @@ public class BreakoutGame extends Activity {
             }
 
             return true;
+        }
+
+        public void levelEnded(){
+            //set the levelend var
+            levelEnd = true;
+
+            //Check to see if the complete game is won
+            if(winner){
+                gameWinner();
+            }
+            else{
+                //has the player cleared the screen?
+                if(score == numBricks * 10){
+                    paint.setTextSize(90);
+                    canvas.drawText("Congratulations! On to level " + level, 10, screenY/2, paint);
+                }
+
+                //has player lost?
+                if(lives <= 0){
+                    paint.setTextSize(90);
+                    canvas.drawText("YOU HAVE LOST, Touch to Restart", 10, screenY/2, paint);
+                }
+            }
+        }
+
+        public void gameWinner(){
+            paint.setTextSize(90);
+            canvas.drawText("Winner Winner Winner!!", 10, screenY/2, paint);
         }
     }//end of the breakoutview inner class
 }

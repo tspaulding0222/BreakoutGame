@@ -1,5 +1,6 @@
 package tomspaulding.co.nf.breakoutgame;
 
+import android.graphics.Rect;
 import android.graphics.RectF;
 
 import java.util.Random;
@@ -39,6 +40,10 @@ public class Ball {
 
     public void reverseXVelocity(){
         xVelocity = -xVelocity;
+    }
+
+    public void paddleBounch(Rect paddleRect, Rect ballRect){
+
     }
 
     public void setRandomXVelocity(){
