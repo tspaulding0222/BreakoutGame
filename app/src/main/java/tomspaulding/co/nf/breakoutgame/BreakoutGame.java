@@ -2,16 +2,23 @@ package tomspaulding.co.nf.breakoutgame;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.RectF;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import java.io.IOException;
 
 public class BreakoutGame extends Activity {
 
@@ -60,6 +67,24 @@ public class BreakoutGame extends Activity {
         //the ball
         Ball ball;
 
+        //up to 200 bricks
+        Brick[] bricks = new Brick[200];
+        int numBricks = 0;
+
+        //for sound fx
+        SoundPool soundPool;
+        int beep1ID = -1;
+        int beep2ID = -1;
+        int beep3ID = -1;
+        int loseLifeID = -1;
+        int explodeID = -1;
+
+        //the score
+        int score = 0;
+
+        //lives
+        int lives = 3;
+
         //a boolean to track if the game is running
         volatile boolean playing;
 
@@ -101,12 +126,57 @@ public class BreakoutGame extends Activity {
             //create the ball
             ball = new Ball(screenX, screenY);
 
+            //load the sounds
+            soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+            try{
+                //Create objects fo teh 2 required classes
+                AssetManager assetManager = context.getAssets();
+                AssetFileDescriptor descriptor;
+
+                //load our fx in memory
+                descriptor = assetManager.openFd("beep1.ogg");
+                beep1ID = soundPool.load(descriptor, 0);
+
+                descriptor = assetManager.openFd("beep2.ogg");
+                beep2ID = soundPool.load(descriptor, 0);
+
+                descriptor = assetManager.openFd("beep3.ogg");
+                beep3ID = soundPool.load(descriptor, 0);
+
+                descriptor = assetManager.openFd("loseLife.ogg");
+                loseLifeID = soundPool.load(descriptor, 0);
+
+                descriptor = assetManager.openFd("explode.ogg");
+                explodeID = soundPool.load(descriptor, 0);
+            }
+            catch(IOException e){
+                Log.e("error", "failed to load sound files");
+            }
+
             createBricksAndRestart();
         }
 
         public void createBricksAndRestart(){
             //put the ball back to start
             ball.reset(screenX, screenY);
+
+            int brickWidth = screenX /8;
+            int brickHeight = screenY /10;
+
+            //number of bricks left
+            numBricks = 0;
+
+            //build a wall of bricks
+            for(int column = 0; column < 8; column++){
+                for(int row = 0; row < 3; row++){
+                    bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
+                    numBricks++;
+                }
+            }
+
+            //reset scores and lives
+            score = 0;
+            lives = 3;
         }
 
         @Override
@@ -134,6 +204,68 @@ public class BreakoutGame extends Activity {
             //move the users paddle if required
             paddle.update(fps);
 
+            //check the ball for colliding
+            for(int i = 0; i < numBricks; i++){
+                if(bricks[i].getVisibility()){
+                    if(RectF.intersects(bricks[i].getRect(), ball.getRect())){
+                        bricks[i].setInvisible();
+                        ball.reverseYVelocity();
+                        score = score + 10;
+                        soundPool.play(explodeID, 1, 1, 0, 0, 1);
+                    }
+                }
+            }
+
+            //check for ball colliding with paddle
+            if(RectF.intersects(paddle.getRect(), ball.getRect())){
+                ball.setRandomXVelocity();
+                ball.reverseYVelocity();
+                ball.clearObstacleY(paddle.getRect().top - 2);
+                soundPool.play(beep1ID, 1, 1, 0, 0, 1);
+            }
+
+            //Reset the ball when it hits bottom of screen and deduct a life
+            if(ball.getRect().bottom > screenY){
+                ball.reverseYVelocity();
+                ball.clearObstacleY(screenY - 2);
+
+                //lose a life
+                lives--;
+                soundPool.play(loseLifeID, 1, 1, 0, 0, 1);
+
+                if(lives == 0){
+                    paused = true;
+                    createBricksAndRestart();
+                }
+            }
+
+            //bounce the ball back when it hits top of screen
+            if(ball.getRect().top < 0){
+                ball.reverseYVelocity();
+                ball.clearObstacleY(12);
+                soundPool.play(beep2ID, 1, 1, 0, 0, 1);
+            }
+
+            //bounce the ball back when it hits left side of screen
+            if(ball.getRect().left < 0){
+                ball.reverseXVelocity();
+                ball.clearObstacleX(2);
+                soundPool.play(beep3ID, 1, 1, 0, 0, 1);
+            }
+
+            //bound the ball back when it hits right side of screen
+            if(ball.getRect().right > screenX - 10){
+                ball.reverseXVelocity();
+                ball.clearObstacleX(screenX - 22);
+                soundPool.play(beep3ID, 1, 1, 0, 0, 1);
+            }
+
+            //pause if cleared screen
+            if(score == numBricks * 10){
+                paused = true;
+                createBricksAndRestart();
+            }
+
             //update the ball location
             ball.update(fps);
         }
@@ -146,7 +278,7 @@ public class BreakoutGame extends Activity {
                 canvas = ourHolder.lockCanvas();
 
                 //Draw the background color
-                canvas.drawColor(Color.argb(255, 26, 128, 182));
+                canvas.drawColor(Color.argb(255, 57, 57, 57));
 
                 //set the brush color
                 paint.setColor(Color.argb(255, 255, 255, 255));
@@ -157,9 +289,34 @@ public class BreakoutGame extends Activity {
                 //draw the ball
                 canvas.drawRect(ball.getRect(), paint);
 
-                //draw the bricks
+                //change the color of the brush
+                paint.setColor(Color.argb(255, 249, 129, 0));
 
-                //draw the hud
+                //draw the bricks
+                for(int i = 0; i < numBricks; i++){
+                    if(bricks[i].getVisibility()){
+                        canvas.drawRect(bricks[i].getRect(), paint);
+                    }
+                }
+
+                //change the brush color
+                paint.setColor(Color.argb(255, 255, 255, 255));
+
+                //draw the score
+                paint.setTextSize(40);
+                canvas.drawText("Score: " + score + " Lives: " + lives, 10, 50, paint);
+
+                //has the player cleared the screen?
+                if(score == numBricks * 10){
+                    paint.setTextSize(90);
+                    canvas.drawText("YOU HAVE WON", 10, screenY/2, paint);
+                }
+
+                //has player lost?
+                if(lives <= 0){
+                    paint.setTextSize(90);
+                    canvas.drawText("YOU HAVE LOST", 10, screenY/2, paint);
+                }
 
                 //draw everything to the screen
                 ourHolder.unlockCanvasAndPost(canvas);
