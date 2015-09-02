@@ -191,12 +191,6 @@ public class BreakoutGame extends Activity {
         }
 
         public void buildBrickWall(int brickWidth, int brickHeight){
-            //if max level reached then end the game
-            if(level >= maxLevel && lives != 0){
-                winner = true;
-                level = 1;
-            }
-
             //Various brick formations for the levels
             if(level == 1){
                 //8 columns, 3 rows
@@ -320,7 +314,14 @@ public class BreakoutGame extends Activity {
 
             //pause if cleared screen
             if(score == numBricks * 10){
-                level++;
+                //if max level reached then end the game
+                if(level >= maxLevel){
+                    winner = true;
+                    level = 1;
+                }
+                else{
+                    level++;
+                }
 
                 paused = true;
             }
