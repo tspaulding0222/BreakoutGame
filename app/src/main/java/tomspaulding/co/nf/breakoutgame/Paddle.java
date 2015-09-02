@@ -40,7 +40,7 @@ public class Paddle {
         rect = new RectF(x, y, x + length, y + height);
 
         //how fast is the paddle
-        paddleSpeed = 350;
+        paddleSpeed = 450;
     }
 
     //get the rectangle that defines the paddle

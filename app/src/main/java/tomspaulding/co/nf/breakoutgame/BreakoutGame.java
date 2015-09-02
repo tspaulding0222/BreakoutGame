@@ -19,6 +19,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BreakoutGame extends Activity {
 
@@ -89,7 +91,7 @@ public class BreakoutGame extends Activity {
         int level = 1;
 
         //The max level you want to be played
-        int maxLevel = 1;
+        int maxLevel = 4;
 
         //tracks if the current level has ended
         boolean levelEnd = false;
@@ -194,12 +196,13 @@ public class BreakoutGame extends Activity {
             //Various brick formations for the levels
             if(level == 1){
                 //8 columns, 3 rows
-                for(int column = 0; column < 1; column++){
-                    for(int row = 0; row < 1; row++){
+                for(int column = 0; column < 8; column++){
+                    for(int row = 0; row < 3; row++){
                         bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
                         numBricks++;
                     }
                 }
+
             }
             else if(level == 2){
                 //8 columns, 4 rows
@@ -220,6 +223,33 @@ public class BreakoutGame extends Activity {
                     for(int row = 0; row < 4; row++){
                         bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
                         numBricks++;
+                    }
+                }
+            }
+            else if(level == 4){
+                //Create the arraylist that will contain the bricks that should not be drawn
+                ArrayList<Integer[]> rows = new ArrayList<>();
+                Integer[] row0Skips = {};
+                rows.add(row0Skips);
+                Integer[] row1Skips = {0, 7};
+                rows.add(row1Skips);
+                Integer[] row2Skips = {0, 1, 6, 7};
+                rows.add(row2Skips);
+                Integer[] row3Skips = {0, 1, 2, 5, 6, 7};
+                rows.add(row3Skips);
+                Integer[] row4Skips = {0, 1, 2, 5, 6, 7};
+                rows.add(row4Skips);
+                Integer[] row5Skips = {0, 1, 2, 5, 6, 7};
+                rows.add(row5Skips);
+
+                //loop through and create the level of bricks
+                for(int column = 0; column < 8; column++){
+                    for(int row = 0; row < 6; row++){
+                        Integer[] skips = rows.get(row);
+                        if(!(Arrays.asList(skips).contains(column))){
+                            bricks[numBricks] = new Brick(row, column, brickWidth, brickHeight);
+                            numBricks++;
+                        }
                     }
                 }
             }
